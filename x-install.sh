@@ -419,14 +419,14 @@ main_menu() {
     status="$(get_xray_status)"
     echo "${AQUA}=== Xray 管理菜单 ===${RESET}"
     echo "状态：${status}"
-    echo "===================="
+    echo "====================="
     echo "1. 安装"
     echo "2. 更新"
     echo "3. 启动"
     echo "4. 停止"
     echo "5. 重启"
-    echo "0. 卸载"
-    echo "q. 退出"
+    echo "99. 卸载"
+    echo "0. 退出"
     echo
     read -r -p "请选择: " choice
     case "$choice" in
@@ -449,10 +449,10 @@ main_menu() {
         restart_xray
         pause
         ;;
-      0)
+      99)
         remove_xray
         ;;
-      q|Q)
+      0)
         exit 0
         ;;
       *)
