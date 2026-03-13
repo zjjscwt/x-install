@@ -297,12 +297,19 @@ restart_xray() {
 }
 
 get_xray_status() {
-  if ! systemctl list-unit-files | grep -qw 'xray'; then
+  # 1. 优先检查核心二进制文件
+  # 只要文件在，就说明安装过，不会再误报“待安装”
+  if [[ ! -x "/usr/local/bin/xray" ]]; then
     echo "待安装"
     return
   fi
+
+  # 2. 检查服务运行状态
   if systemctl -q is-active xray; then
-    echo "运行中"
+    echo "${GREEN}运行中${RESET}"
+  # 3. 如果没运行，检查是否是因为报错而崩溃 (failed)
+  elif systemctl -q is-failed xray; then
+    echo "${RED}运行异常 (Failed)${RESET}"
   else
     echo "已停止"
   fi
@@ -417,8 +424,9 @@ main_menu() {
     clear
     local status
     status="$(get_xray_status)"
-    echo "${AQUA}=== Xray 管理菜单 ===${RESET}"
-    echo "状态：${status}"
+    echo -e "${AQUA}=== Xray 管理菜单 ===${RESET}"
+    # 使用 echo -e 确保颜色转义字符正常渲染
+    echo -e "状态：${status}"
     echo "====================="
     echo "1. 安装"
     echo "2. 更新"
