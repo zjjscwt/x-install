@@ -7,9 +7,9 @@
 ## 一键安装（推荐）
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/zjjscwt/x-install/main/xray-manager.sh -o /root/xray-manager.sh \
-  && chmod +x /root/xray-manager.sh \
-  && /root/xray-manager.sh
+curl -fsSL https://raw.githubusercontent.com/zjjscwt/x-install/main/x-install.sh -o /root/x-install.sh \
+  && chmod +x /root/x-install.sh \
+  && /root/x-install.sh
 ```
 
 执行后将自动创建快捷命令：`daili`，后续可直接在终端输入 `daili` 进入管理菜单。
@@ -39,4 +39,5 @@ https://raw.githubusercontent.com/zjjscwt/x-install/main/config-example.json
 - 需在支持 systemd 的 Linux 系统上运行
 - 需使用 root 权限执行
 - 卸载会删除脚本本体与模板文件（确认输入 y）
+
 
