@@ -38,4 +38,5 @@ https://raw.githubusercontent.com/zjjscwt/x-install/main/config-example.json
 
 - 需在支持 systemd 的 Linux 系统上运行
 - 需使用 root 权限执行
-- 卸载会删除脚本本体与模板文件
+- 卸载会删除脚本本体与模板文件（确认输入 y）
+

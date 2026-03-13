@@ -4,6 +4,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OFFICIAL_URL="https://github.com/XTLS/Xray-install/raw/main/install-release.sh"
+OFFICIAL_SCRIPT_LOCAL="${SCRIPT_DIR}/xray-install.sh"
 TEMPLATE_URL="https://raw.githubusercontent.com/zjjscwt/x-install/main/config-example.json"
 TEMPLATE_FILE="${SCRIPT_DIR}/config-example.json"
 TARGET_CONFIG="/usr/local/etc/xray/config.json"
@@ -299,8 +300,8 @@ remove_xray() {
   echo "影响范围：Xray 程序、服务、日志、配置、GEO 数据、快捷命令 daili、管理脚本、模板文件"
   echo "风险评估：卸载后服务将不可用，配置不可恢复"
   echo
-  read -r -p "请确认是否继续？[需要明确的 \"是\"、\"确认\"、\"继续\"]: " confirm
-  if [[ "$confirm" != "是" && "$confirm" != "确认" && "$confirm" != "继续" ]]; then
+  read -r -p "请确认是否继续？(输入 y 继续): " confirm
+  if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
     echo "已取消"
     return
   fi
@@ -379,6 +380,7 @@ require_root
 check_files
 setup_shortcut
 main_menu
+
 
 
 
