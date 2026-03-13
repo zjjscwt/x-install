@@ -7,7 +7,9 @@
 ## 一键安装（推荐）
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/zjjscwt/x-install/main/xray-manager.sh | bash
+curl -fsSL https://raw.githubusercontent.com/zjjscwt/x-install/main/xray-manager.sh -o /root/xray-manager.sh \
+  && chmod +x /root/xray-manager.sh \
+  && /root/xray-manager.sh
 ```
 
 执行后将自动创建快捷命令：`daili`，后续可直接在终端输入 `daili` 进入管理菜单。
