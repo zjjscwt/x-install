@@ -52,6 +52,13 @@
     "domainStrategy": "AsIs",
     "rules": [
       {
+      "type": "field",
+      "domain": [
+        "domain:gstatic.com"
+      ],
+      "outboundTag": "direct"
+      },
+      {
         "type": "field",
         "outboundTag": "block",
         "domain": ["geosite:cn"]
