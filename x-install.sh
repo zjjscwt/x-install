@@ -419,6 +419,7 @@ main_menu() {
     status="$(get_xray_status)"
     echo "${AQUA}=== Xray 管理菜单 ===${RESET}"
     echo "状态：${status}"
+    echo "===================="
     echo "1. 安装"
     echo "2. 更新"
     echo "3. 启动"
