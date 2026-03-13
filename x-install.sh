@@ -123,6 +123,10 @@ write_config() {
   local private_key="$3"
   local short_ids="$4"
 
+  escape_sed() {
+    printf '%s' "$1" | sed -e 's/[\\/&]/\\&/g'
+  }
+
   local short_ids_json
   if [[ "$short_ids" == *","* ]]; then
     short_ids_json="["
@@ -147,11 +151,16 @@ write_config() {
   tmp_file="$(mktemp)"
   cat "$TEMPLATE_FILE" >"$tmp_file"
 
+  local uuid_esc domain_esc private_key_esc
+  uuid_esc="$(escape_sed "$uuid")"
+  domain_esc="$(escape_sed "$domain")"
+  private_key_esc="$(escape_sed "$private_key")"
+
   sed -i \
-    -e "s/YOUR_UUID/$uuid/g" \
-    -e "s/YOUR_PRIVATE_KEY/$private_key/g" \
-    -e "s/YOUR_DOMAIN/$domain/g" \
-    -e "s/\"shortIds\": \[\"SHORT_ID\"\]/\"shortIds\": $short_ids_json/" \
+    -e "s|YOUR_UUID|$uuid_esc|g" \
+    -e "s|YOUR_PRIVATE_KEY|$private_key_esc|g" \
+    -e "s|YOUR_DOMAIN|$domain_esc|g" \
+    -e "s|\"shortIds\": \\[\"SHORT_ID\"\\]|\"shortIds\": $short_ids_json|" \
     "$tmp_file"
 
   install -d "$(dirname "$TARGET_CONFIG")"
@@ -300,6 +309,82 @@ get_xray_status() {
   fi
 }
 
+detect_pkg_manager() {
+  if command -v apt >/dev/null 2>&1; then
+    echo "apt"
+  elif command -v dnf >/dev/null 2>&1; then
+    echo "dnf"
+  elif command -v yum >/dev/null 2>&1; then
+    echo "yum"
+  elif command -v zypper >/dev/null 2>&1; then
+    echo "zypper"
+  elif command -v pacman >/dev/null 2>&1; then
+    echo "pacman"
+  else
+    echo ""
+  fi
+}
+
+install_pkg() {
+  local pkg="$1"
+  local pm
+  pm="$(detect_pkg_manager)"
+  if [[ -z "$pm" ]]; then
+    echo "${RED}error:${RESET} 未检测到可用的包管理器"
+    return 1
+  fi
+  echo "⚠️ 危险操作检测！"
+  echo "操作类型：安装依赖包"
+  echo "影响范围：系统包管理器全局安装 $pkg"
+  echo "风险评估：需要联网，可能修改系统软件源状态"
+  echo
+  read -r -p "请确认是否继续？(输入 y 继续): " confirm
+  if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
+    echo "已取消"
+    return 1
+  fi
+  case "$pm" in
+    apt)
+      apt update && apt install -y "$pkg"
+      ;;
+    dnf)
+      dnf install -y "$pkg"
+      ;;
+    yum)
+      yum install -y "$pkg"
+      ;;
+    zypper)
+      zypper install -y "$pkg"
+      ;;
+    pacman)
+      pacman -Syy --noconfirm "$pkg"
+      ;;
+  esac
+}
+
+check_deps() {
+  local ok=1
+  if ! command -v curl >/dev/null 2>&1 && ! command -v wget >/dev/null 2>&1; then
+    echo "${RED}warning:${RESET} 未检测到 curl 或 wget"
+    install_pkg "curl" || ok=0
+  fi
+  if ! command -v unzip >/dev/null 2>&1; then
+    echo "${RED}warning:${RESET} 未检测到 unzip"
+    install_pkg "unzip" || ok=0
+  fi
+  if ! command -v curl >/dev/null 2>&1 && ! command -v wget >/dev/null 2>&1; then
+    echo "${RED}error:${RESET} 仍未检测到 curl 或 wget"
+    ok=0
+  fi
+  if ! command -v unzip >/dev/null 2>&1; then
+    echo "${RED}error:${RESET} 仍未检测到 unzip"
+    ok=0
+  fi
+  if [[ "$ok" -eq 0 ]]; then
+    return 1
+  fi
+}
+
 remove_xray() {
   echo "⚠️ 危险操作检测！"
   echo "操作类型：卸载并清理 Xray"
@@ -380,5 +465,6 @@ main_menu() {
 
 init_colors
 require_root
+check_deps
 setup_shortcut
 main_menu
