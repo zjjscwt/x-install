@@ -25,14 +25,14 @@ init_colors() {
 
 require_root() {
   if [[ "$(id -u)" -ne 0 ]]; then
-    echo "${RED}error:${RESET} 请使用 root 运行该脚本"
+    echo "${RED}error:${RESET} 璇蜂娇鐢?root 杩愯璇ヨ剼鏈?
     exit 1
   fi
 }
 
 pause() {
   echo
-  read -r -p "按回车继续..." _
+  read -r -p "鎸夊洖杞︾户缁?.." _
 }
 
 prompt_value() {
@@ -61,7 +61,7 @@ gen_uuid() {
 
 ensure_xray_installed() {
   if [[ ! -x /usr/local/bin/xray ]]; then
-    echo "${RED}error:${RESET} 未检测到 xray，请先安装"
+    echo "${RED}error:${RESET} 鏈娴嬪埌 xray锛岃鍏堝畨瑁?
     return 1
   fi
 }
@@ -82,7 +82,7 @@ fetch_official_script() {
   elif command -v wget >/dev/null 2>&1; then
     wget -qO "$OFFICIAL_SCRIPT_LOCAL" "$OFFICIAL_URL"
   else
-    echo "${RED}error:${RESET} 未找到 curl 或 wget，无法下载官方脚本"
+    echo "${RED}error:${RESET} 鏈壘鍒?curl 鎴?wget锛屾棤娉曚笅杞藉畼鏂硅剼鏈?
     exit 1
   fi
   chmod +x "$OFFICIAL_SCRIPT_LOCAL"
@@ -95,7 +95,7 @@ fetch_template() {
   elif command -v wget >/dev/null 2>&1; then
     wget -qO "$TEMPLATE_FILE" "$TEMPLATE_URL"
   else
-    echo "${RED}error:${RESET} 未找到 curl 或 wget，无法下载配置模板"
+    echo "${RED}error:${RESET} 鏈壘鍒?curl 鎴?wget锛屾棤娉曚笅杞介厤缃ā鏉?
     exit 1
   fi
 }
@@ -106,13 +106,13 @@ setup_shortcut() {
     return 0
   fi
   if ln -s "$SCRIPT_DIR/x-install.sh" "$target" 2>/dev/null; then
-    echo "${GREEN}info:${RESET} 已创建快捷命令: daili"
+    echo "${GREEN}info:${RESET} 宸插垱寤哄揩鎹峰懡浠? daili"
   else
     if cp "$SCRIPT_DIR/x-install.sh" "$target" 2>/dev/null; then
       chmod +x "$target"
-      echo "${GREEN}info:${RESET} 已复制快捷命令: daili"
+      echo "${GREEN}info:${RESET} 宸插鍒跺揩鎹峰懡浠? daili"
     else
-      echo "${RED}warning:${RESET} 无法创建快捷命令，请手动设置"
+      echo "${RED}warning:${RESET} 鏃犳硶鍒涘缓蹇嵎鍛戒护锛岃鎵嬪姩璁剧疆"
     fi
   fi
 }
@@ -158,33 +158,33 @@ write_config() {
   install -m 644 "$tmp_file" "$TARGET_CONFIG"
   rm -f "$tmp_file"
 
-  echo "${GREEN}info:${RESET} 配置已写入: $TARGET_CONFIG"
+  echo "${GREEN}info:${RESET} 閰嶇疆宸插啓鍏? $TARGET_CONFIG"
 }
 
 install_xray() {
-  echo "${AQUA}>>> 安装 Xray（使用官方脚本）${RESET}"
+  echo "${AQUA}>>> 瀹夎 Xray锛堜娇鐢ㄥ畼鏂硅剼鏈級${RESET}"
 
   local uuid domain private_key short_ids public_key
 
-  uuid="$(prompt_value "请输入 UUID（回车自动生成）: ")"
+  uuid="$(prompt_value "璇疯緭鍏?UUID锛堝洖杞﹁嚜鍔ㄧ敓鎴愶級: ")"
   if [[ -z "$uuid" ]]; then
     uuid="$(gen_uuid)"
-    echo "${GREEN}info:${RESET} 已自动生成 UUID: $uuid"
+    echo "${GREEN}info:${RESET} 宸茶嚜鍔ㄧ敓鎴?UUID: $uuid"
   fi
 
-  domain="$(prompt_value "请输入伪装域名（回车使用 YOUR_DOMAIN 默认值）: ")"
+  domain="$(prompt_value "璇疯緭鍏ヤ吉瑁呭煙鍚嶏紙鍥炶溅浣跨敤 YOUR_DOMAIN 榛樿鍊硷級: ")"
   if [[ -z "$domain" ]]; then
     domain="www.samsung.com"
   fi
   if ! validate_domain "$domain"; then
-    echo "${RED}error:${RESET} 域名格式不正确"
+    echo "${RED}error:${RESET} 鍩熷悕鏍煎紡涓嶆纭?
     return 1
   fi
 
-  short_ids="$(prompt_value "请输入 shortIds（逗号分隔，回车自动生成 8 位）: ")"
+  short_ids="$(prompt_value "璇疯緭鍏?shortIds锛堥€楀彿鍒嗛殧锛屽洖杞﹁嚜鍔ㄧ敓鎴?8 浣嶏級: ")"
   if [[ -z "$short_ids" ]]; then
     short_ids="$(random_hex 8)"
-    echo "${GREEN}info:${RESET} 已自动生成 shortIds: $short_ids"
+    echo "${GREEN}info:${RESET} 宸茶嚜鍔ㄧ敓鎴?shortIds: $short_ids"
   fi
 
   fetch_official_script
@@ -192,23 +192,23 @@ install_xray() {
 
   ensure_xray_installed
 
-  private_key="$(prompt_value "请输入 privateKey（回车自动生成）: ")"
+  private_key="$(prompt_value "璇疯緭鍏?privateKey锛堝洖杞﹁嚜鍔ㄧ敓鎴愶級: ")"
   if [[ -z "$private_key" ]]; then
     local keypair
     keypair="$(gen_x25519_keypair)"
     private_key="$(echo "$keypair" | awk -F': ' '/Private key/ {print $2}')"
     public_key="$(echo "$keypair" | awk -F': ' '/Public key/ {print $2}')"
-    echo "${GREEN}info:${RESET} 已自动生成 privateKey / publicKey"
+    echo "${GREEN}info:${RESET} 宸茶嚜鍔ㄧ敓鎴?privateKey / publicKey"
   else
-    public_key="$(prompt_value "请输入 publicKey（回车尝试自动推导）: ")"
+    public_key="$(prompt_value "璇疯緭鍏?publicKey锛堝洖杞﹀皾璇曡嚜鍔ㄦ帹瀵硷級: ")"
     if [[ -z "$public_key" ]]; then
       local derived
       derived="$(/usr/local/bin/xray x25519 -i "$private_key" 2>/dev/null || true)"
       public_key="$(echo "$derived" | awk -F': ' '/Public key/ {print $2}')"
       if [[ -z "$public_key" ]]; then
-        public_key="(无法自动推导，请手动确认)"
+        public_key="(鏃犳硶鑷姩鎺ㄥ锛岃鎵嬪姩纭)"
       else
-        echo "${GREEN}info:${RESET} 已自动推导 publicKey"
+        echo "${GREEN}info:${RESET} 宸茶嚜鍔ㄦ帹瀵?publicKey"
       fi
     fi
   fi
@@ -219,9 +219,9 @@ install_xray() {
   systemctl restart xray
   sleep 1s
   if systemctl -q is-active xray; then
-    echo "${GREEN}info:${RESET} Xray 已启动"
+    echo "${GREEN}info:${RESET} Xray 宸插惎鍔?
   else
-    echo "${RED}warning:${RESET} Xray 启动失败，请检查配置"
+    echo "${RED}warning:${RESET} Xray 鍚姩澶辫触锛岃妫€鏌ラ厤缃?
   fi
 
   local ip_addr
@@ -231,13 +231,13 @@ install_xray() {
   if [[ -z "$ip_addr" ]]; then
     ip_addr="$(hostname -I 2>/dev/null | awk '{print $1}')"
   fi
-  [[ -z "$ip_addr" ]] && ip_addr="(未获取到)"
+  [[ -z "$ip_addr" ]] && ip_addr="(鏈幏鍙栧埌)"
 
   echo
-  echo "${AQUA}=== 安装结果 ===${RESET}"
+  echo "${AQUA}=== 瀹夎缁撴灉 ===${RESET}"
   echo "1. IP: $ip_addr"
   echo "2. UUID: $uuid"
-  echo "3. 域名: $domain"
+  echo "3. 鍩熷悕: $domain"
   echo "4. public-key: $public_key"
   echo "5. short-id: $short_ids"
 }
@@ -245,12 +245,12 @@ install_xray() {
 update_menu() {
   while true; do
     clear
-    echo "${AQUA}=== 更新菜单 ===${RESET}"
-    echo "1. 更新内核"
-    echo "2. 更新 GEO 数据"
-    echo "0. 返回"
+    echo "${AQUA}=== 鏇存柊鑿滃崟 ===${RESET}"
+    echo "1. 鏇存柊鍐呮牳"
+    echo "2. 鏇存柊 GEO 鏁版嵁"
+    echo "0. 杩斿洖"
     echo
-    read -r -p "请选择: " choice
+    read -r -p "璇烽€夋嫨: " choice
     case "$choice" in
       1)
         fetch_official_script
@@ -266,7 +266,7 @@ update_menu() {
         break
         ;;
       *)
-        echo "无效选择"
+        echo "鏃犳晥閫夋嫨"
         pause
         ;;
     esac
@@ -275,32 +275,40 @@ update_menu() {
 
 start_xray() {
   systemctl start xray
-  systemctl -q is-active xray && echo "${GREEN}info:${RESET} Xray 已启动" || echo "${RED}error:${RESET} 启动失败"
+  systemctl -q is-active xray && echo "${GREEN}info:${RESET} Xray 宸插惎鍔? || echo "${RED}error:${RESET} 鍚姩澶辫触"
 }
 
 stop_xray() {
   systemctl stop xray
-  systemctl -q is-active xray && echo "${RED}error:${RESET} 停止失败" || echo "${GREEN}info:${RESET} Xray 已停止"
+  systemctl -q is-active xray && echo "${RED}error:${RESET} 鍋滄澶辫触" || echo "${GREEN}info:${RESET} Xray 宸插仠姝?
 }
 
 restart_xray() {
   systemctl restart xray
-  systemctl -q is-active xray && echo "${GREEN}info:${RESET} Xray 已重启" || echo "${RED}error:${RESET} 重启失败"
+  systemctl -q is-active xray && echo "${GREEN}info:${RESET} Xray 宸查噸鍚? || echo "${RED}error:${RESET} 閲嶅惎澶辫触"
 }
 
-status_xray() {
-  systemctl --no-pager --full status xray
+get_xray_status() {
+  if ! systemctl list-unit-files | grep -qw 'xray'; then
+    echo "寰呭畨瑁?
+    return
+  fi
+  if systemctl -q is-active xray; then
+    echo "杩愯涓?
+  else
+    echo "宸插仠姝?
+  fi
 }
 
 remove_xray() {
-  echo "⚠️ 危险操作检测！"
-  echo "操作类型：卸载并清理 Xray"
-  echo "影响范围：Xray 程序、服务、日志、配置、GEO 数据、快捷命令 daili、管理脚本、模板文件"
-  echo "风险评估：卸载后服务将不可用，配置不可恢复"
+  echo "鈿狅笍 鍗遍櫓鎿嶄綔妫€娴嬶紒"
+  echo "鎿嶄綔绫诲瀷锛氬嵏杞藉苟娓呯悊 Xray"
+  echo "褰卞搷鑼冨洿锛歑ray 绋嬪簭銆佹湇鍔°€佹棩蹇椼€侀厤缃€丟EO 鏁版嵁銆佸揩鎹峰懡浠?daili銆佺鐞嗚剼鏈€佹ā鏉挎枃浠?
+  echo "椋庨櫓璇勪及锛氬嵏杞藉悗鏈嶅姟灏嗕笉鍙敤锛岄厤缃笉鍙仮澶?
   echo
-  read -r -p "请确认是否继续？(输入 y 继续): " confirm
+  read -r -p "璇风‘璁ゆ槸鍚︾户缁紵(杈撳叆 y 缁х画): " confirm
   if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
-    echo "已取消"
+    echo "宸插彇娑?
     return
   fi
 
@@ -316,23 +324,25 @@ remove_xray() {
 
   rm -f "$SCRIPT_DIR/x-install.sh"
 
-  echo "${GREEN}info:${RESET} 清理完成"
+  echo "${GREEN}info:${RESET} 娓呯悊瀹屾垚"
 }
 
 main_menu() {
   while true; do
     clear
-    echo "${AQUA}=== Xray 管理菜单 ===${RESET}"
-    echo "1. 安装"
-    echo "2. 更新"
-    echo "3. 启动"
-    echo "4. 停止"
-    echo "5. 重启"
-    echo "6. 状态"
-    echo "0. 卸载"
-    echo "q. 退出"
+    local status
+    status="$(get_xray_status)"
+    echo "${AQUA}=== Xray 绠＄悊鑿滃崟 ===${RESET}"
+    echo "鐘舵€侊細${status}"
+    echo "1. 瀹夎"
+    echo "2. 鏇存柊"
+    echo "3. 鍚姩"
+    echo "4. 鍋滄"
+    echo "5. 閲嶅惎"
+    echo "0. 鍗歌浇"
+    echo "q. 閫€鍑?
     echo
-    read -r -p "请选择: " choice
+    read -r -p "璇烽€夋嫨: " choice
     case "$choice" in
       1)
         install_xray
@@ -353,10 +363,6 @@ main_menu() {
         restart_xray
         pause
         ;;
-      6)
-        status_xray
-        pause
-        ;;
       0)
         remove_xray
         pause
@@ -365,7 +371,7 @@ main_menu() {
         exit 0
         ;;
       *)
-        echo "无效选择"
+        echo "鏃犳晥閫夋嫨"
         pause
         ;;
     esac
