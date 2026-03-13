@@ -35,13 +35,6 @@ pause() {
   read -r -p "按回车继续..." _
 }
 
-prompt_value() {
-  local prompt="$1"
-  local value=""
-  read -r -p "$prompt" value
-  printf '%s' "$value"
-}
-
 random_hex() {
   local len="$1"
   if command -v openssl >/dev/null 2>&1; then
@@ -52,9 +45,7 @@ random_hex() {
 }
 
 gen_uuid() {
-  if [[ -x /usr/local/bin/xray ]]; then
-    /usr/local/bin/xray uuid
-  elif command -v xray >/dev/null 2>&1; then
+  if command -v xray >/dev/null 2>&1; then
     xray uuid
   else
     echo "error: xray 未安装，无法生成 UUID" >&2
@@ -70,7 +61,19 @@ ensure_xray_installed() {
 }
 
 gen_x25519_keypair() {
-  /usr/local/bin/xray x25519
+  xray x25519
+}
+
+extract_xray_field() {
+  local label="$1"
+  awk -v key="$label" '
+    BEGIN { IGNORECASE=1 }
+    $0 ~ ("^" key "[[:space:]]*:") {
+      sub("^[^:]*:[[:space:]]*", "", $0)
+      print $0
+      exit
+    }
+  '
 }
 
 validate_domain() {
@@ -184,15 +187,15 @@ install_xray() {
 
   ensure_xray_installed
 
-  # 安装完成后统一输入配置参数
-  uuid="$(prompt_value "请输入 UUID（回车自动生成）: ")"
+  # 自动生成参数
+  uuid="$(gen_uuid)"
   if [[ -z "$uuid" ]]; then
-    uuid="$(gen_uuid)"
-    echo "${GREEN}info:${RESET} 已自动生成 UUID: $uuid"
+    echo "${RED}error:${RESET} UUID 生成失败"
+    return 1
   fi
 
   while true; do
-    domain="$(prompt_value "请输入伪装域名（不能为空）: ")"
+    domain="$(read -r -p "请输入伪装域名（不能为空）: " _tmp; printf '%s' "$_tmp")"
     if [[ -z "$domain" ]]; then
       echo "${RED}error:${RESET} 伪装域名不能为空"
       continue
@@ -204,36 +207,19 @@ install_xray() {
     break
   done
 
-  short_ids="$(prompt_value "请输入 shortIds（回车自动生成 8 位）: ")"
-  if [[ -z "$short_ids" ]]; then
-    short_ids="$(random_hex 8)"
-    echo "${GREEN}info:${RESET} 已自动生成 shortIds: $short_ids"
+  short_ids="$(random_hex 8)"
+
+  local keypair
+  keypair="$(gen_x25519_keypair)"
+  private_key="$(echo "$keypair" | extract_xray_field "PrivateKey" | xargs)"
+  public_key="$(echo "$keypair" | extract_xray_field "Password" | xargs)"
+  if [[ -z "$private_key" || -z "$public_key" ]]; then
+    echo "${RED}error:${RESET} privateKey / publicKey 生成失败"
+    echo "${RED}error:${RESET} 原始输出如下："
+    echo "$keypair"
+    return 1
   fi
 
-  private_key="$(prompt_value "请输入 privateKey（回车自动生成）: ")"
-  if [[ -z "$private_key" ]]; then
-    local keypair
-    keypair="$(gen_x25519_keypair)"
-    private_key="$(echo "$keypair" | awk -F': ' '/Private key/ {print $2}' | xargs)"
-    public_key="$(echo "$keypair" | awk -F': ' '/Public key/ {print $2}' | xargs)"
-    if [[ -z "$private_key" || -z "$public_key" ]]; then
-      echo "${RED}error:${RESET} privateKey / publicKey 生成失败"
-      return 1
-    fi
-    echo "${GREEN}info:${RESET} 已自动生成 privateKey / publicKey"
-  else
-    public_key="$(prompt_value "请输入 publicKey（回车尝试自动推导）: ")"
-    if [[ -z "$public_key" ]]; then
-      local derived
-      derived="$(/usr/local/bin/xray x25519 -i "$private_key" 2>/dev/null || true)"
-      public_key="$(echo "$derived" | awk -F': ' '/Public key/ {print $2}' | xargs)"
-      if [[ -z "$public_key" ]]; then
-        public_key="无法自动推导，请手动确认"
-      else
-        echo "${GREEN}info:${RESET} 已自动推导 publicKey"
-      fi
-    fi
-  fi
 
   fetch_template
   write_config "$uuid" "$domain" "$private_key" "$short_ids"
