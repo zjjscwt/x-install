@@ -7,9 +7,7 @@
 ## 一键安装（推荐）
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/zjjscwt/x-install/main/x-install.sh -o /root/x-install.sh \
-  && chmod +x /root/x-install.sh \
-  && /root/x-install.sh
+curl -fsSL https://raw.githubusercontent.com/zjjscwt/x-install/main/x-install.sh -o /root/x-install.sh && chmod +x /root/x-install.sh && /root/x-install.sh
 ```
 
 执行后将自动创建快捷命令：`daili`，后续可直接在终端输入 `daili` 进入管理菜单。
